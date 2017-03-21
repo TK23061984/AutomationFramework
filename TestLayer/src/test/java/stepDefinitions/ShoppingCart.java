@@ -1,5 +1,7 @@
 package stepDefinitions;
 
+import org.junit.Test;
+
 import Helper.Utilities;
 import common.Log;
 import cucumber.api.java.en.Given;
@@ -14,6 +16,11 @@ public class ShoppingCart {
 	
 	@Given("^the user browses the site (.*)$")
 	public void NavigateTo(String url) throws Throwable {
+		System.out.println("^the user browses the site (.*)");
+		if(_driver == null){
+			System.out.println("Driver is null");
+		}
+			
 		_driver.navigate("www.Amazon.com");
 		_log.info("the user browses the site");
 	}
@@ -37,6 +44,7 @@ public class ShoppingCart {
 	public void VerifyCart() throws Throwable {
 		_log.info("VerifyCart");
 	}
-
+	
+	
 
 }

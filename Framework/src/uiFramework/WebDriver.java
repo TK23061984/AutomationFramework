@@ -8,19 +8,23 @@ import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 import common.Log;
+import common.ReadPropertyFile;
+import enums.Browser;
 import uiFramework.FindBy.FindType;
 
 public class WebDriver {
 
 	private static RemoteWebDriver _driver = null;
 	private static Browser _browser = Browser.Undefined;
-	private static String _primaryWindowHandle = null;
+	//private static String _primaryWindowHandle = null;
 	private static final String TASKLIST = "tasklist";
 	private static final String KILL = "taskkill /F /IM ";
-
+	ReadPropertyFile propertyFile = null;
+	
 	static Log _log = null;
 
 
@@ -29,7 +33,8 @@ public class WebDriver {
 	{
 		if(_driver == null)
 		{
-			_browser = Browser.Chrome;
+			propertyFile = new ReadPropertyFile();
+			_browser = propertyFile.Browser();			
 			launchBrowser();        	
 		}
 		_log = logger;
@@ -45,7 +50,8 @@ public class WebDriver {
 			case Firefox:
 			{
 				killProcess("firefox.exe");		
-
+				System.setProperty("webdriver.gecko.driver",new File(System.getProperty("user.dir")).getParent() + "\\External\\Drivers\\geckodriver.exe");
+				_driver = new FirefoxDriver();
 				break;
 			}
 			case Chrome:
@@ -53,9 +59,7 @@ public class WebDriver {
 				
 				killProcess("chrome.exe");
 				killProcess("chromedriverserver.exe");
-				
-				System.setProperty("webdriver.chrome.driver",
-						"C:\\Users\\c-tdhanasekaran\\git\\AutomationFramework\\External\\Chrome\\chromedriver.exe");
+				System.setProperty("webdriver.chrome.driver",new File(System.getProperty("user.dir")).getParent() + "\\External\\Drivers\\chromedriver.exe");
 				//UIChromeDriver driver = (UIChromeDriver)_driver  ;
 				_driver = new UIChromeDriver();
 				
@@ -71,7 +75,7 @@ public class WebDriver {
 				break;
 			}
 			_driver.manage().timeouts().implicitlyWait(1500,TimeUnit.MILLISECONDS);
-			_primaryWindowHandle = _driver.getWindowHandle();
+			//_primaryWindowHandle = _driver.getWindowHandle();
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -213,7 +217,7 @@ public class WebDriver {
 			}
 			_driver = null;
 			_browser = Browser.Undefined;
-			_primaryWindowHandle = null;
+			//_primaryWindowHandle = null;
 		}
 	}
 
@@ -353,19 +357,7 @@ public class WebDriver {
 		}
 	}
 
-	/// <summary>
-	/// Enum to select the Browser under test
-	/// </summary>
-	public enum Browser
-	{
-		Firefox,
-		InternetExplorer,
-		Chrome,
-		Android,
-		FirefoxDefaultProfile,
-		FirefoxWithGooglebotProfile,
-		Undefined
-	}
+	
 }
 
 

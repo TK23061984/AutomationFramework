@@ -11,13 +11,13 @@ public class Log {
 	public Log(String fileName)
 	{
 		_fileName = fileName;
-		//logger = Logger.getLogger(_fileName);
-      // PropertyConfigurator.configure("log4j.properties");
+		logger = Logger.getLogger(_fileName);
+       //PropertyConfigurator.configure("log4j.properties");
 	}
 	
     public void info(String message)
     {
-    	//logger.info(message);    	
+    	logger.info(message);    	
     }
     
     public void warn(String message)
