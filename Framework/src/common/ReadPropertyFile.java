@@ -57,5 +57,9 @@ public class ReadPropertyFile {
 	public String UserName(){
 		return prop.getProperty("UserName");
 	}
+	
+	public String DownloadPath(){
+		return prop.getProperty("DownloadPath");
+	}
 }
 

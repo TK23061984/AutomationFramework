@@ -15,6 +15,10 @@ public class Log {
        //PropertyConfigurator.configure("log4j.properties");
 	}
 	
+	public void setFileName(String fileName){
+		_fileName = fileName;
+	}
+	
     public void info(String message)
     {
     	logger.info(message);    	

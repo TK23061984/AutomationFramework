@@ -4,12 +4,21 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.remote.CapabilityType;
+import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+
+import com.google.common.primitives.UnsignedInts;
 
 import common.Log;
 import common.ReadPropertyFile;
@@ -51,7 +60,9 @@ public class WebDriver {
 			{
 				killProcess("firefox.exe");		
 				System.setProperty("webdriver.gecko.driver",new File(System.getProperty("user.dir")).getParent() + "\\External\\Drivers\\geckodriver.exe");
-				_driver = new FirefoxDriver();
+				UIFirefoxDriver driver = new UIFirefoxDriver();				
+				_driver = (RemoteWebDriver)driver;
+				
 				break;
 			}
 			case Chrome:
@@ -59,16 +70,30 @@ public class WebDriver {
 				
 				killProcess("chrome.exe");
 				killProcess("chromedriverserver.exe");
-				System.setProperty("webdriver.chrome.driver",new File(System.getProperty("user.dir")).getParent() + "\\External\\Drivers\\chromedriver.exe");
-				//UIChromeDriver driver = (UIChromeDriver)_driver  ;
-				_driver = new UIChromeDriver();
+				System.setProperty("webdriver.chrome.driver",new File(System.getProperty("user.dir")).getParent() + "\\External\\Drivers\\chromedriver_2.28.exe");
 				
+				//Chrome Options
+                HashMap<String, Object> chromePrefs = new HashMap<String, Object>();
+                chromePrefs.put("profile.default_content_settings.popups", 0);
+                chromePrefs.put("download.default_directory", propertyFile.DownloadPath());
+                ChromeOptions options = new ChromeOptions();
+                options.setExperimentalOption("prefs", chromePrefs);
+                DesiredCapabilities cap = DesiredCapabilities.chrome();
+                cap.setCapability(CapabilityType.ACCEPT_SSL_CERTS, true);
+                cap.setCapability(ChromeOptions.CAPABILITY, options);
+				
+				UIChromeDriver driver = new UIChromeDriver(cap);				
+				_driver = (RemoteWebDriver)driver;
 				break;
 			}
 			case InternetExplorer:
 			{
 				killProcess("iexplore.exe");
 				killProcess("iedriverserver.exe");
+				
+				System.setProperty("webdriver.ie.driver",new File(System.getProperty("user.dir")).getParent() + "\\External\\Drivers\\IEDriverServer_3.3.exe");
+				UIIEDriver driver = new UIIEDriver();				
+				_driver = (RemoteWebDriver)driver;
 				break;
 			}
 			default:
@@ -91,6 +116,9 @@ public class WebDriver {
 	/// <param name="url">Address to navigate to</param>
 	public void navigate(String url)
 	{		
+		if(_driver != null){
+			System.out.println("WebDriver : Driver is not null");
+		}
 		_driver.navigate().to(url);          
 		_driver.manage().window().maximize();        
 	}
@@ -294,18 +322,94 @@ public class WebDriver {
 	/// <param name="findType">What criteria to search from</param>
 	/// <param name="value">Value of the criteria</param>
 	/// <returns>WebElement representing the searched-for object</returns>
-	public UIWebElement GetElement(FindType findType, String value)
+	public WebElement findElement(FindType findType, String value)
 	{
 		return findElement(findType, value, 1);
 	}
 
 	/// <summary>
-	/// Finds the first descendent element based on criteria
+	/// Finds the first element based on criteria
 	/// </summary>
 	/// <param name="findType">What criteria to search from</param>
 	/// <param name="value">Value of the criteria</param>
 	/// <param name="waitSec">Wait time in second(s)</param>
 	/// <returns>WebElement representing the searched-for object</returns>
+	public WebElement findElement(FindType findType, String value, int waitSec)
+	{
+		WebElement element = null;
+		//_log.Info("Waiting for the element to be found.");
+		try
+		{
+			Boolean isElementAvailable = true;// WaitForElementToLoad(findType, value, waitSec);
+			if (isElementAvailable)
+			{
+				element = _driver.findElement(new FindBy().GetBy(findType, value));
+				
+			}
+			else
+			{
+
+				element = _driver.findElement(new FindBy().GetBy(findType, value));
+				String s = (element == null) ? "Element not found" : "Element was found";
+				_log.info("[WebBrowser.GetElement] - Element '" + value + "' is not available. Trying to get the element anyway.");
+				_log.info("Result of the GetElement: " + s);
+			}
+		}
+		catch (Exception e)
+		{
+			_log.info("[UIFramework.WebBrowser.GetElement] Exception caught: " + e.getMessage());
+		}
+		return element;
+	}
+	
+		/*******
+		 * 
+		 * @param findType
+		 * @param value
+		 * @return
+		 */
+		public List<WebElement> findElements(FindType findType, String value)
+		{
+			return findElements(findType, value, 1);
+		}
+
+	
+		/// <summary>
+		/// Finds the first elements based on criteria
+		/// </summary>
+		/// <param name="findType">What criteria to search from</param>
+		/// <param name="value">Value of the criteria</param>
+		/// <param name="waitSec">Wait time in second(s)</param>
+		/// <returns>WebElement representing the searched-for object</returns>
+		public List<WebElement> findElements(FindType findType, String value, int waitSec)
+		{
+			List<WebElement> lstElement = null;
+			//_log.Info("Waiting for the element to be found.");
+			try
+			{
+				Boolean isElementAvailable = true;// WaitForElementToLoad(findType, value, waitSec);
+				if (isElementAvailable)
+				{
+					lstElement = _driver.findElements(new FindBy().GetBy(findType, value));
+					
+				}
+				else
+				{
+
+					lstElement = _driver.findElements(new FindBy().GetBy(findType, value));
+					String s = (lstElement == null) ? "Element not found" : "Element was found";
+					_log.info("[WebBrowser.GetElement] - Element '" + value + "' is not available. Trying to get the element anyway.");
+					_log.info("Result of the GetElement: " + s);
+				}
+			}
+			catch (Exception e)
+			{
+				_log.info("[UIFramework.WebBrowser.GetElement] Exception caught: " + e.getMessage());
+			}
+			return lstElement;
+		}
+	
+	/*
 	public UIWebElement findElement(FindType findType, String value, int waitSec)
 	{
 		UIWebElement element = null;
@@ -332,7 +436,7 @@ public class WebDriver {
 		}
 		return element;
 	}
-
+*/
 	private boolean isProcessRunning(String serviceName) throws Exception {
 
 		Process p = Runtime.getRuntime().exec(TASKLIST);

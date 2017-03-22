@@ -15,4 +15,14 @@ public class Utilities {
 	       return _driver;
 	    }
 	
+	 
+	 static Log _log = null;
+
+	 public static Log Log(String fileName) {
+	       if(_log == null){
+	    	   _log = new Log(fileName);
+	       }
+	       _log.setFileName(fileName);
+	       return _log;
+	    }
 }

@@ -2,8 +2,6 @@ package common;
 
 
 
-import java.io.File;
-
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
